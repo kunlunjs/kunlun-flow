@@ -9,3 +9,90 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// 用户
+model User {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  email     String   @unique
+  phone     String   @unique
+  username  String   @unique
+  password  String
+
+  role     Role      @relation(fields: [roleId], references: [id])
+  roleId   String
+  projects Project[]
+}
+
+// 角色
+model Role {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String   @unique
+
+  users User[]
+}
+
+// 项目
+model Project {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String   @unique
+  status    String
+  version   String
+
+  creator      User                 @relation(fields: [creatorId], references: [id])
+  creatorId    Int
+  configures   Configure[]
+  lastConfigId Int
+  tasks        Task[]
+  services     ProjectsOnServices[]
+}
+
+// 服务
+model Service {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  description String
+
+  projects ProjectsOnServices[]
+}
+
+model ProjectsOnServices {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
+  Service   Service? @relation(fields: [serviceId], references: [id])
+  serviceId String?
+}
+
+// 项目设计配置
+model Configure {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  version   String
+  body      Json
+
+  projectId String?
+  Project   Project? @relation(fields: [projectId], references: [id])
+}
+
+// 后台任务?
+model Task {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  body      Json
+
+  projectId String?
+  Project   Project? @relation(fields: [projectId], references: [id])
+}
